@@ -11,13 +11,14 @@ public class Person {
 
     @Id
     @Column(name = "person_id")
-    private  int id;
+    private int id;
 
     @Column
     private String name;
 
     @Column
     private int age;
+
 
     public Person() {
         this("Harry", 42);
@@ -52,6 +53,4 @@ public class Person {
     public void setAge(int age) {
         this.age = age;
     }
-
-
 }
