@@ -1,0 +1,21 @@
+# IDEA #
+######################
+*.idea
+*.iml
+
+# Logs #
+######################
+*.log
+
+# Generated files #
+/web-app/WEB-INF
+build/
+target/
+*.[oa]
+*.pyc
+
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
