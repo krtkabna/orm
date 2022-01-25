@@ -1,15 +1,14 @@
 package com.wasp.orm.querygenerator;
 
 import com.wasp.orm.querygenerator.entity.Person;
-import com.wasp.orm.querygenerator.entity.TestEntity;
-import com.wasp.orm.querygenerator.exception.NoSuchFieldRuntimeException;
+import com.wasp.orm.querygenerator.entity.PersonBuilder;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class QueryGeneratorTests {
-    QueryGenerator queryGenerator = new DefaultQueryGenerator();
+    private static final String DEFAULT_QUERY = "";
+    QueryGenerator queryGenerator = new SQLQueryGenerator();
 
     @Test
     public void findAllTest() {
@@ -29,23 +28,25 @@ public class QueryGeneratorTests {
 
     @Test
     public void insertTest() {
-        Person person = new Person();
-        person.setId(27);
-
-        String expectedQuery = "INSERT INTO Person VALUES(27, 'Harry', 42);";
+        String expectedQueryFormat = "INSERT INTO Person VALUES(27, 'Harry', %s);";
+        Person person = PersonBuilder.newPerson()
+            .setAge(42)
+            .build();
         String actualQuery = queryGenerator.insert(person);
 
-        assertEquals(expectedQuery, actualQuery);
+        assertEquals(String.format(expectedQueryFormat, person.getAge()), actualQuery);
     }
 
     @Test
     public void deleteTest() {
-        Person person = new Person();
-        person.setId(27);
-
         String expectedQuery = "DELETE FROM Person WHERE id=27;";
-        String actualQuery = queryGenerator.delete(person);
+//        String actualQuery = queryGenerator.delete(person);
 
-        assertEquals(expectedQuery, actualQuery);
+//        assertEquals(expectedQuery, actualQuery);
+    }
+
+    @Test
+    void test() {
+
     }
 }
