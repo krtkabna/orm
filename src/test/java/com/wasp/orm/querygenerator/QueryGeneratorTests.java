@@ -2,13 +2,31 @@ package com.wasp.orm.querygenerator;
 
 import com.wasp.orm.querygenerator.entity.Person;
 import com.wasp.orm.querygenerator.entity.PersonBuilder;
+import com.wasp.orm.querygenerator.entity.TestEntity;
+import com.wasp.orm.querygenerator.exception.WaspOrmRuntimeException;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
+
+import static com.wasp.orm.querygenerator.QueryGeneratorUtils.checkIllegalArgument;
+import static com.wasp.orm.querygenerator.QueryGeneratorUtils.getColumnName;
+import static com.wasp.orm.querygenerator.QueryGeneratorUtils.getFieldValue;
+import static com.wasp.orm.querygenerator.QueryGeneratorUtils.getIdFieldValue;
+import static com.wasp.orm.querygenerator.QueryGeneratorUtils.getIdString;
+import static com.wasp.orm.querygenerator.QueryGeneratorUtils.getTableName;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class QueryGeneratorTests {
-    private static final String DEFAULT_QUERY = "";
+    private static final String PERSON_FIND_BY_ID_FORMAT = "SELECT person_id, name, age FROM Person WHERE id=%s;";
+    private static final String PERSON_INSERT_FORMAT = "INSERT INTO Person VALUES(%s, '%s', %s);";
+    private static final String PERSON_DELETE_FORMAT = "DELETE FROM Person WHERE id=%s;";
+    private static final String NAME = "name";
+    private static final String AGE = "age";
+
     QueryGenerator queryGenerator = new SQLQueryGenerator();
+    Person person = PersonBuilder.defaultPerson();
 
     @Test
     public void findAllTest() {
@@ -20,33 +38,67 @@ public class QueryGeneratorTests {
 
     @Test
     public void findByIdTest() {
-        String expectedQuery = "SELECT person_id, name, age FROM Person WHERE id=1;";
-        String actualQuery = queryGenerator.findById(1, Person.class);
+        String expectedQuery = String.format(PERSON_FIND_BY_ID_FORMAT, person.getId());
+        String actualQuery = queryGenerator.findById(person.getId(), Person.class);
 
         assertEquals(expectedQuery, actualQuery);
     }
 
     @Test
     public void insertTest() {
-        String expectedQueryFormat = "INSERT INTO Person VALUES(27, 'Harry', %s);";
-        Person person = PersonBuilder.newPerson()
-            .setAge(42)
-            .build();
+        String expectedQuery = String.format(PERSON_INSERT_FORMAT, person.getId(), person.getName(), person.getAge());
         String actualQuery = queryGenerator.insert(person);
 
-        assertEquals(String.format(expectedQueryFormat, person.getAge()), actualQuery);
+        assertEquals(expectedQuery, actualQuery);
     }
 
     @Test
     public void deleteTest() {
-        String expectedQuery = "DELETE FROM Person WHERE id=27;";
-//        String actualQuery = queryGenerator.delete(person);
+        String expectedQuery = String.format(PERSON_DELETE_FORMAT, person.getId());
+        String actualQuery = queryGenerator.delete(person);
 
-//        assertEquals(expectedQuery, actualQuery);
+        assertEquals(expectedQuery, actualQuery);
     }
 
     @Test
-    void test() {
+    public void checkIllegalArgumentTest() {
+        assertThrows(IllegalArgumentException.class, () -> checkIllegalArgument(TestEntity.class));
+    }
 
+    @Test
+    public void getTableNameTest() {
+        assertThrows(IllegalArgumentException.class, () -> getTableName(TestEntity.class));
+    }
+
+    @Test
+    public void getColumnNameTest() {
+        assertThrows(IllegalArgumentException.class,
+            () -> getColumnName(TestEntity.class.getDeclaredField("name")));
+    }
+
+    @Test
+    public void getFieldValueTest() {
+        Field name = null;
+        try {
+            name = Person.class.getDeclaredField(NAME);
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        }
+
+        assertEquals(String.format("'%s'", person.getName()), getFieldValue(name, person));
+    }
+
+    @Test
+    public void getIdStringTest() {
+        assertThrows(WaspOrmRuntimeException.class, () -> getIdString(TestEntity.class));
+        assertEquals("id", getIdString(Person.class));
+    }
+
+    @Test
+    public void getIdFieldValueTest() {
+        TestEntity testEntity = new TestEntity();
+        assertThrows(WaspOrmRuntimeException.class, () -> getIdFieldValue(testEntity));
+
+        assertEquals(String.valueOf(person.getId()), getIdFieldValue(person));
     }
 }

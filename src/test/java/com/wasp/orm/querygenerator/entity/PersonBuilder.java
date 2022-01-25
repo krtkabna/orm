@@ -14,8 +14,20 @@ public class PersonBuilder {
 
     public static Person defaultPerson() {
         return (new PersonBuilder())
+            .setName("Harry")
             .setAge(42)
+            .setId(27)
             .build();
+    }
+
+    public PersonBuilder setId(int id) {
+        person.setId(id);
+        return this;
+    }
+
+    public PersonBuilder setName(String name) {
+        person.setName(name);
+        return this;
     }
 
     public PersonBuilder setAge(int age) {

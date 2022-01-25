@@ -1,6 +1,7 @@
 package com.wasp.orm.querygenerator;
 
 import com.wasp.orm.querygenerator.annotation.Column;
+import com.wasp.orm.querygenerator.exception.WaspOrmRuntimeException;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.StringJoiner;
@@ -11,6 +12,7 @@ import static com.wasp.orm.querygenerator.QueryGeneratorUtils.getFieldValue;
 import static com.wasp.orm.querygenerator.QueryGeneratorUtils.getIdFieldValue;
 import static com.wasp.orm.querygenerator.QueryGeneratorUtils.getIdString;
 import static com.wasp.orm.querygenerator.QueryGeneratorUtils.getTableName;
+import static com.wasp.orm.querygenerator.QueryGeneratorUtils.isColumn;
 
 public class SQLQueryGenerator implements QueryGenerator {
     private static final String SELECT = "SELECT ";
@@ -84,7 +86,7 @@ public class SQLQueryGenerator implements QueryGenerator {
         StringJoiner parameters = new StringJoiner(", ");
 
         for (Field declaredField : clazz.getDeclaredFields()) {
-            if (declaredField.getAnnotation(Column.class) != null) {
+            if (isColumn(declaredField)) {
                 parameters.add(getColumnName(declaredField));
             }
         }
@@ -96,12 +98,8 @@ public class SQLQueryGenerator implements QueryGenerator {
         StringJoiner arguments = new StringJoiner(", ", "(", ")");
 
         for (Field declaredField : o.getClass().getDeclaredFields()) {
-            if (declaredField.getAnnotation(Column.class) != null) {
-                try {
-                    arguments.add(getFieldValue(declaredField, o));
-                } catch (IllegalAccessException e) {
-                    System.err.println(e.getMessage());
-                }
+            if (isColumn(declaredField)) {
+                arguments.add(getFieldValue(declaredField, o));
             }
         }
 
