@@ -3,6 +3,8 @@ package com.wasp.orm.querygenerator;
 import com.wasp.orm.querygenerator.annotation.Column;
 import com.wasp.orm.querygenerator.annotation.Id;
 import com.wasp.orm.querygenerator.annotation.Table;
+import com.wasp.orm.querygenerator.exception.IllegalAccessRuntimeException;
+import com.wasp.orm.querygenerator.exception.NoSuchFieldRuntimeException;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -86,7 +88,7 @@ public class DefaultQueryGenerator implements QueryGenerator {
         }
     }
 
-    private StringJoiner getParameters(Class<?> clazz) {
+    private String getParameters(Class<?> clazz) {
         StringJoiner parameters = new StringJoiner(", ");
 
         for (Field declaredField : clazz.getDeclaredFields()) {
@@ -97,7 +99,7 @@ public class DefaultQueryGenerator implements QueryGenerator {
             }
         }
 
-        return parameters;
+        return parameters.toString();
     }
 
     private String getFieldValue(Field field, Object o) throws IllegalAccessException {
@@ -136,9 +138,9 @@ public class DefaultQueryGenerator implements QueryGenerator {
             Field field = clazz.getDeclaredField(getIdString(clazz));
             return getFieldValue(field, value);
         } catch (NoSuchFieldException e) {
-            throw new RuntimeException(String.format(NO_SUCH_ELEMENT_EX_FORMAT, clazz.getSimpleName()));
+            throw new NoSuchFieldRuntimeException(String.format(NO_SUCH_ELEMENT_EX_FORMAT, clazz.getSimpleName()));
         } catch (IllegalAccessException e) {
-           throw new RuntimeException(e.getMessage());
+           throw new IllegalAccessRuntimeException(e.getMessage());
         }
     }
 
@@ -163,11 +165,11 @@ public class DefaultQueryGenerator implements QueryGenerator {
         }
     }
 
-    private String getIdStringAndHandleException(Class<?> clazz) {
+    public String getIdStringAndHandleException(Class<?> clazz) {
         try {
             return getIdString(clazz);
         } catch (NoSuchFieldException e) {
-            throw new RuntimeException(e.getMessage());
+            throw new NoSuchFieldRuntimeException(e.getMessage());
         }
     }
 
