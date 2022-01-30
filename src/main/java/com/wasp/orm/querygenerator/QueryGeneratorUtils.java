@@ -6,8 +6,9 @@ import com.wasp.orm.querygenerator.annotation.Table;
 import com.wasp.orm.querygenerator.exception.WaspOrmRuntimeException;
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.function.Function;
 
-public class QueryGeneratorUtils {
+public final class QueryGeneratorUtils {
     private static final String NO_SUCH_ELEMENT_EX_FORMAT = "No field is annotated with @Id for class %s";
 
     static void checkIllegalArgument(Class<?> clazz) {
@@ -56,19 +57,27 @@ public class QueryGeneratorUtils {
             : fieldValue;
     }
 
-    static String getIdString(Class<?> clazz) {
+    static String getId(Class<?> clazz, Function<? super Field, ? extends String> mapper) {
         return Arrays.stream(clazz.getDeclaredFields())
             .filter(field -> field.getAnnotation(Id.class) != null)
             .findFirst()
-            .map(Field::getName)
+            .map(mapper)
             .orElseThrow(() -> new WaspOrmRuntimeException(
                 String.format(NO_SUCH_ELEMENT_EX_FORMAT, clazz.getName())));
+    }
+
+    static String getIdFieldName(Class<?> clazz) {
+        return getId(clazz, Field::getName);
+    }
+
+    static String getIdColumnName(Class<?> clazz) {
+        return getId(clazz, QueryGeneratorUtils::getColumnName);
     }
 
     static String getIdFieldValue(Object value) {
         Class<?> clazz = value.getClass();
         try {
-            Field field = clazz.getDeclaredField(getIdString(clazz));
+            Field field = clazz.getDeclaredField(getIdFieldName(clazz));
             return getFieldValue(field, value);
         } catch (NoSuchFieldException e) {
             throw new WaspOrmRuntimeException(String.format(NO_SUCH_ELEMENT_EX_FORMAT, clazz.getSimpleName()), e);

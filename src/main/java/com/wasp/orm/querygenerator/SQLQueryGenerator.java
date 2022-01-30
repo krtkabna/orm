@@ -1,7 +1,5 @@
 package com.wasp.orm.querygenerator;
 
-import com.wasp.orm.querygenerator.annotation.Column;
-import com.wasp.orm.querygenerator.exception.WaspOrmRuntimeException;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.StringJoiner;
@@ -9,8 +7,9 @@ import java.util.StringJoiner;
 import static com.wasp.orm.querygenerator.QueryGeneratorUtils.checkIllegalArgument;
 import static com.wasp.orm.querygenerator.QueryGeneratorUtils.getColumnName;
 import static com.wasp.orm.querygenerator.QueryGeneratorUtils.getFieldValue;
+import static com.wasp.orm.querygenerator.QueryGeneratorUtils.getIdColumnName;
+import static com.wasp.orm.querygenerator.QueryGeneratorUtils.getIdFieldName;
 import static com.wasp.orm.querygenerator.QueryGeneratorUtils.getIdFieldValue;
-import static com.wasp.orm.querygenerator.QueryGeneratorUtils.getIdString;
 import static com.wasp.orm.querygenerator.QueryGeneratorUtils.getTableName;
 import static com.wasp.orm.querygenerator.QueryGeneratorUtils.isColumn;
 
@@ -24,10 +23,7 @@ public class SQLQueryGenerator implements QueryGenerator {
         checkIllegalArgument(clazz);
         StringBuilder result = new StringBuilder(SELECT);
 
-        result.append(getParametersString(clazz))
-            .append(FROM)
-            .append(getTableName(clazz))
-            .append(";");
+        result.append(getParametersString(clazz)).append(FROM).append(getTableName(clazz)).append(";");
         return result.toString();
     }
 
@@ -35,51 +31,23 @@ public class SQLQueryGenerator implements QueryGenerator {
     public String findById(Serializable id, Class<?> clazz) {
         checkIllegalArgument(clazz);
 
-        StringBuilder result = new StringBuilder(SELECT);
-
-        result.append(getParametersString(clazz))
-            .append(FROM)
-            .append(getTableName(clazz))
-            .append(WHERE)
-            .append(getIdString(clazz))
-            .append("=")
-            .append(id)
-            .append(";");
-
-        return result.toString();
+        return SELECT + getParametersString(clazz) + FROM + getTableName(clazz) + WHERE + getIdColumnName(clazz) + "=" + id + ";";
     }
 
     @Override
     public String insert(Object value) {
         Class<?> clazz = value.getClass();
         checkIllegalArgument(clazz);
-        StringBuilder result = new StringBuilder("INSERT INTO ");
 
-        result
-            .append(getTableName(clazz))
-            .append(" VALUES")
-            .append(getObjectFieldValues(value))
-            .append(";");
-
-        return result.toString();
+        return "INSERT INTO " + getTableName(clazz) + "(" + getParametersString(clazz) + ")" + " VALUES" + getObjectFieldValues(value) + ";";
     }
 
     @Override
     public String delete(Object value) {
         Class<?> clazz = value.getClass();
         checkIllegalArgument(clazz);
-        StringBuilder result = new StringBuilder("DELETE");
 
-        result
-            .append(FROM)
-            .append(getTableName(clazz))
-            .append(WHERE)
-            .append(getIdString(clazz))
-            .append("=")
-            .append(getIdFieldValue(value))
-            .append(";");
-
-        return result.toString();
+        return "DELETE" + FROM + getTableName(clazz) + WHERE + getIdColumnName(clazz) + "=" + getIdFieldValue(value) + ";";
     }
 
     private String getParametersString(Class<?> clazz) {
